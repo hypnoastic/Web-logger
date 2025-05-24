@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Web-to-Sheet Logger Settings</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 8px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #3367d6;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background-color: #e6f4ea;
+      color: #137333;
+    }
+    .error {
+      background-color: #fce8e6;
+      color: #c5221f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sheet Settings</h2>
+    <p>Enter your Google Apps Script Web App URL:</p>
+    <input type="url" id="sheet-url" placeholder="https://script.google.com/...">
+    <button id="save-url">Link Sheet</button>
+    <div id="status-message" class="message"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
