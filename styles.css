@@ -1,0 +1,21 @@
+#saveToSheetBtn {
+    position: fixed;
+    z-index: 10000;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.2s;
+}
+
+#saveToSheetBtn:hover {
+    background-color: #3367d6;
+}
+
+#saveToSheetBtn:active {
+    background-color: #2850a7;
+}

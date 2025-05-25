@@ -1,32 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Web-to-Sheet Logger",
+  "name": "Text to Google Sheets",
   "version": "1.0",
-  "description": "Save highlighted text to Google Sheets with a single click",
+  "description": "Save selected text to Google Sheets with metadata",
   "permissions": [
     "activeTab",
     "scripting",
-    "storage",
-    "contextMenus",
-    "https://docs.google.com/"
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"]
-    }
-  ],
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "css": ["styles.css"]
+  }],
   "background": {
     "service_worker": "background.js"
   },
-  "web_accessible_resources": [
-    {
-      "resources": ["popup.html"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  "icons": {
+    "16": "icons/logo.png",
+    "32": "icons/logo.png",
+    "48": "icons/logo.png",
+    "128": "icons/logo.png"
+  }
 }

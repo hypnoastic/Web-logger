@@ -1,109 +1,75 @@
-// Create and inject the floating button
-const button = document.createElement('button');
-button.className = 'web-to-sheet-button';
-button.innerHTML = '📤 Save to Sheet';
-document.body.appendChild(button);
+let floatingButton = null;
+let selectedText = '';
 
-// Create and inject the toast element
-const toast = document.createElement('div');
-toast.className = 'web-to-sheet-toast';
-document.body.appendChild(toast);
+// Create floating button
+function createFloatingButton() {
+    if (!floatingButton) {
+        floatingButton = document.createElement('button');
+        floatingButton.id = 'saveToSheetBtn';
+        floatingButton.innerHTML = '💾 Save to Sheet';
+        floatingButton.style.display = 'none';
+        document.body.appendChild(floatingButton);
 
-// Show toast message
-function showToast(message, type) {
-  toast.textContent = message;
-  toast.className = `web-to-sheet-toast ${type}`;
-  toast.style.display = 'block';
-  
-  // Hide toast after animation
-  setTimeout(() => {
-    toast.style.display = 'none';
-  }, 3000);
+        floatingButton.addEventListener('click', saveSelection);
+    }
 }
 
-// Handle text selection
-document.addEventListener('mouseup', (e) => {
-  const selection = window.getSelection();
-  const selectedText = selection.toString().trim();
-  
-  if (selectedText) {
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
+// Position the floating button near selection
+function updateButtonPosition(event) {
+    if (!floatingButton) return;
     
-    // Position the button near the selection
-    button.style.left = `${rect.left + window.scrollX}px`;
-    button.style.top = `${rect.bottom + window.scrollY + 10}px`;
-    button.style.display = 'flex';
-  } else {
-    button.style.display = 'none';
-  }
-});
-
-// Hide button when clicking elsewhere
-document.addEventListener('mousedown', (e) => {
-  if (e.target !== button) {
-    button.style.display = 'none';
-  }
-});
-
-// Handle button click
-button.addEventListener('click', async () => {
-  const selectedText = window.getSelection().toString().trim();
-  
-  if (!selectedText) return;
-  
-  // Get sheet URL from storage
-  const result = await new Promise(resolve => chrome.storage.local.get(['sheetUrl'], resolve));
-  const { sheetUrl } = result;
-  
-  if (!sheetUrl) {
-    showToast('❌ Please set up Google Sheet URL in extension settings', 'error');
-    return;
-  }
-  
-  // Prepare data
-  const data = {
-    text: selectedText,
-    url: window.location.href,
-    title: document.title,
-    timestamp: new Date().toISOString()
-  };
-  
-  try {
-    // Format data for Google Sheets
-    const sheetData = [
-      data.timestamp,
-      data.text,
-      data.url,
-      data.title
-    ];
-
-    // Get the spreadsheet ID
-    const spreadsheetResult = await new Promise(resolve => chrome.storage.local.get(['spreadsheetId'], resolve));
-    const { spreadsheetId } = spreadsheetResult;
-    
-    if (!spreadsheetId) {
-      throw new Error('Invalid sheet configuration');
+    const selection = window.getSelection();
+    if (!selection.toString().trim()) {
+        floatingButton.style.display = 'none';
+        return;
     }
 
-    // Construct the Google Sheets API URL for appending data
-    const apiUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv`;
-    
-    // Append data using the Sheets API
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/csv',
-      },
-      body: sheetData.join(',')
+    selectedText = selection.toString().trim();
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+
+    floatingButton.style.position = 'fixed';
+    floatingButton.style.top = `${rect.bottom + window.scrollY + 10}px`;
+    floatingButton.style.left = `${rect.left + window.scrollX}px`;
+    floatingButton.style.display = 'block';
+}
+
+// Save the selected text and metadata
+async function saveSelection() {
+    const data = {
+        text: selectedText,
+        title: document.title,
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+    };
+
+    // Get the web app URL from storage
+    chrome.storage.sync.get(['webAppUrl'], async function(result) {
+        if (!result.webAppUrl) {
+            alert('Please set up the Google Apps Script Web App URL in the extension settings');
+            return;
+        }
+
+        try {
+            const response = await fetch(result.webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            floatingButton.innerHTML = '💾 ✓ Saved!';
+            setTimeout(() => {
+                floatingButton.innerHTML = '💾 Save to Sheet';
+            }, 2000);
+        } catch (error) {
+            console.error('Error saving to sheet:', error);
+            alert('Error saving to sheet. Please check the console for details.');
+        }
     });
-    
-    if (!response.ok) throw new Error('Failed to save');
-    
-    showToast('✅ Saved to Sheet!', 'success');
-    button.style.display = 'none';
-  } catch (error) {
-    showToast('❌ Failed to Save', 'error');
-    console.error('Error saving to sheet:', error);
-  }
-});
+}
+
+// Initialize
+document.addEventListener('mouseup', updateButtonPosition);
+createFloatingButton();
